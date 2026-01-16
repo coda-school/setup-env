@@ -16,6 +16,19 @@ has() { command -v "$1" >/dev/null 2>&1; }
 # --- Mise à jour des paquets ---
 info "Mise à jour des paquets système..."
 sudo apt update && sudo apt upgrade -y || err "Échec mise à jour des paquets"
+sudo apt install ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+# Add the repository to Apt sources:
+sudo tee /etc/apt/sources.list.d/docker.sources <<EOF
+Types: deb
+URIs: https://download.docker.com/linux/ubuntu
+Suites: $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")
+Components: stable
+Signed-By: /etc/apt/keyrings/docker.asc
+EOF
 
 # --- Git et GitHub Desktop ---
 if ! has git; then
@@ -73,6 +86,27 @@ if ! has docker; then
     ok "Docker installé. Redémarrez votre session pour appliquer les permissions."
 else
     ok "Docker déjà présent."
+fi
+
+# --- Docker Desktop ---
+if [ ! -d "/usr/bin/docker-desktop" ]; then
+    info "Installation de Docker Desktop..."
+    # Téléchargement du package .deb
+    TEMP_DIR="/tmp/docker_desktop_install"
+    mkdir -p "$TEMP_DIR"
+    cd "$TEMP_DIR" || err "Impossible d'accéder au répertoire temporaire."
+    wget https://desktop.docker.com/linux/main/amd64/docker-desktop-4.27.2-amd64.deb -O docker-desktop.deb || err "Échec du téléchargement de Docker Desktop."
+
+    # Installation
+    sudo apt install -y ./docker-desktop.deb || err "Échec de l'installation de Docker Desktop."
+    rm -rf "$TEMP_DIR"
+
+    # Ajout de l'utilisateur au groupe docker (si pas déjà fait)
+    sudo usermod -aG docker $USER
+
+    ok "Docker Desktop installé. Redémarrez votre session pour finaliser l'installation."
+else
+    ok "Docker Desktop déjà présent."
 fi
 
 # Test rapide avec une image FrankenPHP
