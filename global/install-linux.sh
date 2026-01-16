@@ -96,21 +96,11 @@ else
     ok "PhpStorm déjà présent."
 fi
 
-# --- SDKMan ---
-if ! has sdk; then
-    info "Installation de SDKMan..."
-    curl -s "https://get.sdkman.io" | bash || err "Échec installation SDKMan"
-    source "$HOME/.sdkman/bin/sdkman-init.sh"
-    ok "SDKMan installé."
-else
-    ok "SDKMan déjà présent."
-fi
-
 # --- JDK ---
 if ! java -version >/dev/null 2>&1; then
     info "Installation du JDK 21 (Temurin)..."
-    sdk install java 21.0.1-tem || err "Échec installation JDK"
-    ok "JDK 21 Temurin installé."
+    apt install openjdk-25-jdk  || err "Échec installation JDK"
+    ok "Open JDK 25."
 else
     ok "JDK déjà présent ($(java -version 2>&1 | head -n1))."
 fi
@@ -126,11 +116,26 @@ fi
 
 # --- SceneBuilder for JavaFX ---
 if ! has scenebuilder; then
-    info "Installation de SceneBuilder..."
-    sudo apt install -y scenebuilder || err "Échec installation SceneBuilder"
-    ok "SceneBuilder installé."
+    info "Installation de Scene Builder..."
+    TEMP_DIR="/tmp/scene_builder_install"
+    mkdir -p "$TEMP_DIR"
+    cd "$TEMP_DIR" || err "Impossible d'accéder au répertoire temporaire."
+
+    # Téléchargement du fichier .deb
+    info "Téléchargement de Scene Builder..."
+    wget https://download2.gluonhq.com/scenebuilder/25.0.0/install/linux/SceneBuilder-25.0.0.deb -O SceneBuilder.deb || err "Échec du téléchargement de Scene Builder."
+
+    # Installation
+    chmod +x SceneBuilder.deb
+    dpkg -i SceneBuilder.deb || err "Échec de l'installation de Scene Builder."
+    apt-get install -f -y || err "Échec de la résolution des dépendances."
+    apt autoremove -y
+
+    # Nettoyage
+    rm -rf "$TEMP_DIR"
+    ok "Scene Builder installé."
 else
-    ok "SceneBuilder déjà présent."
+    ok "Scene Builder déjà présent."
 fi
 
 # --- Node.js ---
