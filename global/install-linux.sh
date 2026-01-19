@@ -159,6 +159,16 @@ else
     ok "Scene Builder déjà présent."
 fi
 
+# --- WebStorm ---
+if ! has webstorm then
+    info "Installation de WebStorm via Snap..."
+    sudo snap install webstorm --classic || err "Échec installation WebStorm"
+    ok "WebStorm installé."
+else
+    ok "WebStorm déjà présent."
+fi
+
+
 # --- Node.js ---
 if ! has node; then
     info "Installation de Node.js..."
