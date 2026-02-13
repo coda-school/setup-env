@@ -160,7 +160,7 @@ else
 fi
 
 # --- WebStorm ---
-if ! has webstorm then
+if ! has webstorm; then
     info "Installation de WebStorm via Snap..."
     sudo snap install webstorm --classic || err "Échec installation WebStorm"
     ok "WebStorm installé."
